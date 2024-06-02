@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New House Reservations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.css">
+
+	<script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script>
+	<script src="https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js"></script>
+
+	<link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-6">New House Reservations</h1>
+        
+        <!-- Conflict Message Banner -->
+        <div id="conflictMessage" class="hidden bg-red-500 text-white p-4 mb-4 rounded">
+            Event conflicts with an existing event.
+            <button class="float-right" onclick="dismissBanner()">Dismiss</button>
+        </div>
+
+        <h2 class="text-xl font-semibold mb-4">Make Reservation</h2>
+        <form id="createEventForm" class="bg-white p-6 rounded shadow-md mb-6">
+            <div class="mb-4">
+                <label class="block text-gray-700">Title:</label>
+                <input type="text" id="title" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Description:</label>
+                <input type="text" id="description" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">Start Time:</label>
+                <input type="datetime-local" id="startTime" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700">End Time:</label>
+                <input type="datetime-local" id="endTime" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+            </div>
+            <!-- Location Tabs -->
+            <div class="mb-4">
+                <label class="block text-gray-700">Location:</label>
+                <div class="flex space-x-4">
+                    <button type="button" class="location-tab bg-gray-500 text-white px-4 py-2 rounded" data-location="Conference Room 1">Conference Room 1</button>
+                    <button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Conference Room 2">Conference Room 2</button>
+                    <button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Auditorium">Auditorium</button>
+                </div>
+                <input type="hidden" id="location" value="Conference Room 1">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Make Reservation</button>
+        </form>
+        
+        <!-- Location Tabs for Events Section -->
+        <div class="mb-4">
+            <label class="block text-gray-700">Filter by Location:</label>
+            <div class="flex space-x-4">
+                <button type="button" class="event-location-tab bg-gray-500 text-white px-4 py-2 rounded" data-location="Conference Room 1">Conference Room 1</button>
+                <button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Conference Room 2">Conference Room 2</button>
+                <button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Auditorium">Auditorium</button>
+            </div>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-4">Events</h2>
+        <div id="calendar" class="bg-white p-6 rounded shadow-md"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
