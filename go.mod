@@ -1,4 +1,4 @@
-module github.com/l-yc/nh-scheduler/v2
+module github.com/l-yc/nh-reservations/v2
 
 go 1.21
 
