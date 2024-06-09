@@ -1,7 +1,6 @@
 package main
 
 import (
-    _ "database/sql"
     "time"
 )
 
@@ -26,56 +25,104 @@ func createTable() error {
         end_time DATETIME,
         creator TEXT
     );`
-    _, err := db.Exec(query)
+    err := db.Exec(query)
     return err
 }
 
 func insertEvent(event Event) (int, error) {
-    query := `INSERT INTO events (title, description, location, start_time, end_time, creator) VALUES (?, ?, ?, ?, ?, ?)`
-    result, err := db.Exec(query, event.Title, event.Description, event.Location, event.StartTime, event.EndTime, event.Creator)
+    stmt, _, err := db.Prepare(`INSERT INTO events (title, description, location, start_time, end_time, creator) VALUES (?, ?, ?, ?, ?, ?)`)
     if err != nil {
         return 0, err
     }
-    id, err := result.LastInsertId()
+	defer stmt.Close()
+	stmt.BindText(1, event.Title)
+	stmt.BindText(2, event.Description)
+	stmt.BindText(3, event.Location)
+	stmt.BindTime(4, event.StartTime, timeLayout)
+	stmt.BindTime(5, event.EndTime, timeLayout)
+	stmt.BindText(6, event.Creator)
+	err = stmt.Exec()
+    if err != nil {
+        return 0, err
+    }
+    //id, err := result.LastInsertId()
+	id := 0
     return int(id), err
 }
 
 func getEvents() ([]Event, error) {
-    rows, err := db.Query("SELECT id, title, description, location, start_time, end_time, creator FROM events")
+    stmt, _, err := db.Prepare("SELECT id, title, description, location, start_time, end_time, creator FROM events")
     if err != nil {
         return nil, err
     }
-    defer rows.Close()
+    defer stmt.Close()
+
 
     events := []Event{}
-    for rows.Next() {
-        var event Event
-        err := rows.Scan(&event.ID, &event.Title, &event.Description, &event.Location, &event.StartTime, &event.EndTime, &event.Creator)
-        if err != nil {
-            return nil, err
-        }
+	for stmt.Step() {
+		event := Event{
+			ID:          stmt.ColumnInt(0),
+			Title:       stmt.ColumnText(1),
+			Description: stmt.ColumnText(2),
+			Location:    stmt.ColumnText(3),
+			StartTime:   stmt.ColumnTime(4, timeLayout),
+			EndTime:     stmt.ColumnTime(5, timeLayout),
+			Creator:     stmt.ColumnText(6),
+		}
         events = append(events, event)
     }
+	if err := stmt.Err(); err != nil {
+		return nil, err
+	}
     return events, nil
 }
 
 func getEventByID(id int) (Event, error) {
-    var event Event
-    query := "SELECT id, title, description, location, start_time, end_time, creator FROM events WHERE id = ?"
-    row := db.QueryRow(query, id)
-    err := row.Scan(&event.ID, &event.Title, &event.Description, &event.Location, &event.StartTime, &event.EndTime, &event.Creator)
-    return event, err
+    stmt, _, err := db.Prepare("SELECT id, title, description, location, start_time, end_time, creator FROM events WHERE id = ?")
+	if err != nil {
+		return Event{}, err
+	}
+
+	defer stmt.Close()
+	stmt.Step()
+
+	event := Event{
+		ID:          stmt.ColumnInt(0),
+		Title:       stmt.ColumnText(1),
+		Description: stmt.ColumnText(2),
+		Location:    stmt.ColumnText(3),
+		StartTime:   stmt.ColumnTime(4, timeLayout),
+		EndTime:     stmt.ColumnTime(5, timeLayout),
+		Creator:     stmt.ColumnText(6),
+	}
+    return event, stmt.Err()
 }
 
 func hasConflict(event Event) (bool, error) {
-    query := `SELECT COUNT(*) FROM events WHERE location = ? AND (
+    stmt, _, err := db.Prepare(`SELECT COUNT(*) FROM events WHERE location = ? AND (
                 (start_time < ? AND end_time > ?) OR
                 (start_time < ? AND end_time > ?) OR
                 (start_time >= ? AND start_time < ?) OR
                 (end_time > ? AND end_time <= ?)
-            )`
-    var count int
-    err := db.QueryRow(query, event.Location, event.EndTime, event.StartTime, event.EndTime, event.StartTime, event.StartTime, event.EndTime, event.StartTime, event.EndTime).Scan(&count)
-    return count > 0, err
+            )`)
+	if err != nil {
+		return false, err
+	}
+
+	stmt.BindText(1, event.Location)
+	stmt.BindTime(2, event.EndTime, timeLayout)
+	stmt.BindTime(3, event.StartTime, timeLayout)
+	stmt.BindTime(4, event.EndTime, timeLayout)
+	stmt.BindTime(5, event.StartTime, timeLayout)
+	stmt.BindTime(6, event.StartTime, timeLayout)
+	stmt.BindTime(7, event.EndTime, timeLayout)
+	stmt.BindTime(8, event.StartTime, timeLayout)
+	stmt.BindTime(9, event.EndTime, timeLayout)
+
+	defer stmt.Close()
+
+	stmt.Step()
+	count := stmt.ColumnInt(0)
+	return count > 0, stmt.Err()
 }
 

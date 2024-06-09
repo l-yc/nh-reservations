@@ -1,20 +1,25 @@
 package main
 
 import (
-    "database/sql"
+	"embed"
     "fmt"
     "log"
     "net/http"
 
     "github.com/gorilla/mux"
-    _ "github.com/mattn/go-sqlite3"
+	"github.com/ncruces/go-sqlite3"
+	_ "github.com/ncruces/go-sqlite3/embed"
 )
 
-var db *sql.DB
+var db *sqlite3.Conn
+
+// content holds our static web server content.
+//go:embed static/*
+var content embed.FS
 
 func main() {
     var err error
-    db, err = sql.Open("sqlite3", "./events.db")
+    db, err = sqlite3.Open("./events.db")
     if err != nil {
         log.Fatal(err)
     }
@@ -28,7 +33,9 @@ func main() {
     r.HandleFunc("/events", createEvent).Methods("POST")
     r.HandleFunc("/events", listEvents).Methods("GET")
     r.HandleFunc("/events/{id:[0-9]+}", viewEvent).Methods("GET")
-    r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
+	r.PathPrefix("/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(content))))
+
+	//http.Handle("/static/", )
 
     fmt.Println("Server started at :8080")
     http.ListenAndServe(":8080", r)
