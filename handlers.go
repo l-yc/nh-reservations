@@ -7,17 +7,11 @@ import (
     "time"
 
     "github.com/gorilla/mux"
-
-	"fmt"
 )
 
 const timeLayout = "2006-01-02T15:04:05Z07:00"
 
 func createEvent(w http.ResponseWriter, r *http.Request) {
-	email := r.Header.Get("X-SSL-Client-S-DN-Email")
-	fmt.Println("received email", email)
-
-
     var event Event
     if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
@@ -38,7 +32,7 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
     }
 
     // Set the creator
-    event.Creator = email // Replace with actual logic to determine the creator
+    event.Creator = "unset" // Replace with actual logic to determine the creator
 
     // Check for conflict
     conflict, err := hasConflict(event)

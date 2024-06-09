@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
     "fmt"
+	"io/fs"
     "log"
     "net/http"
 
@@ -33,7 +34,9 @@ func main() {
     r.HandleFunc("/events", createEvent).Methods("POST")
     r.HandleFunc("/events", listEvents).Methods("GET")
     r.HandleFunc("/events/{id:[0-9]+}", viewEvent).Methods("GET")
-	r.PathPrefix("/").Handler(http.StripPrefix("/static/", http.FileServer(http.FS(content))))
+
+	static, _ := fs.Sub(content, "static")
+	r.PathPrefix("/").Handler(http.FileServer(http.FS(static)))
 
 	//http.Handle("/static/", )
 
