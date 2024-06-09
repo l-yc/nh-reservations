@@ -3,7 +3,7 @@ package main
 import (
 	"embed"
     "fmt"
-	"io/fs"
+	_ "io/fs"
     "log"
     "net/http"
 
@@ -32,11 +32,13 @@ func main() {
 
     r := mux.NewRouter()
     r.HandleFunc("/events", createEvent).Methods("POST")
+    r.HandleFunc("/events", updateEvent).Methods("PUT")
     r.HandleFunc("/events", listEvents).Methods("GET")
     r.HandleFunc("/events/{id:[0-9]+}", viewEvent).Methods("GET")
 
-	static, _ := fs.Sub(content, "static")
-	r.PathPrefix("/").Handler(http.FileServer(http.FS(static)))
+	//static, _ := fs.Sub(content, "static")
+	//r.PathPrefix("/").Handler(http.FileServer(http.FS(static)))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
 
 	//http.Handle("/static/", )
 

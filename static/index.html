@@ -2,68 +2,79 @@
 <html>
 <head>
     <title>New House Reservations</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
-	<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.js"></script>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.9.0/main.min.css">
-
-	<script src="https://unpkg.com/popper.js/dist/umd/popper.min.js"></script>
-	<script src="https://unpkg.com/tooltip.js/dist/umd/tooltip.min.js"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.4.4/tailwind.min.css">
+	<script src="https://unpkg.com/fullcalendar@6"></script>
+	<script src="https://unpkg.com/@popperjs/core@2"></script>
+	<script src="https://unpkg.com/tippy.js@6"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100 p-6">
     <div class="container mx-auto">
         <h1 class="text-3xl font-bold mb-6">New House Reservations</h1>
-        
-        <!-- Conflict Message Banner -->
-        <div id="conflictMessage" class="hidden bg-red-500 text-white p-4 mb-4 rounded">
-            Event conflicts with an existing event.
-            <button class="float-right" onclick="dismissBanner()">Dismiss</button>
-        </div>
+		<main class="flex flex-col md:flex-row md:gap-4">
+			<section>
+				<div class="flex mb-4">
+					<h2 id="formTitle" class="text-xl font-semibold">Create Reservation</h2>
+					<button type="button" id="setCreateButton" class="hidden bg-gray-500 text-white ml-2 px-2 rounded">Back</button>
+				</div>
+				<form id="createEventForm">
+					<!-- Location Tabs -->
+					<input type="hidden" id="eventId" value="">
+					<div class="mb-4">
+						<div class="flex space-x-4">
+							<button type="button" class="location-tab bg-gray-500 text-white px-4 py-2 rounded" data-location="MPR">MPR</button>
+							<button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Music Room">Music Room</button>
+							<button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Country Kitchen">Country Kitchen</button>
+							<button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Right Courtyard">Right Courtyard</button>
+							<button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Left Courtyard">Left Courtyard</button>
+						</div>
+						<input type="hidden" id="location" value="MPR">
+					</div>
+					<div class="bg-white p-6 rounded shadow-md mb-6">
+						<div class="mb-4">
+							<label class="block text-gray-700">Title:</label>
+							<input type="text" id="title" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+						</div>
+						<div class="mb-4">
+							<label class="block text-gray-700">Description:</label>
+							<input type="text" id="description" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+						</div>
+						<div class="mb-4">
+							<label class="block text-gray-700">Start Time:</label>
+							<input type="datetime-local" id="startTime" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+						</div>
+						<div class="mb-4">
+							<label class="block text-gray-700">End Time:</label>
+							<input type="datetime-local" id="endTime" class="w-full p-2 border border-gray-300 rounded mt-2" required>
+						</div>
+						<button type="submit" id="submitButton" class="bg-blue-500 text-white px-4 py-2 rounded">Create</button>
+					</div>
+				</form>
+			</section>
+			
+			<!-- Location Tabs for Events Section -->
+			<section>
+				<h2 class="text-xl font-semibold mb-4">View Events</h2>
+				<div class="mb-4">
+					<div class="flex space-x-4">
+						<!-- MPR, Music Room, Country Kitchen, Right Courtyard, Left Courtyard -->
+						<button type="button" class="event-location-tab bg-gray-500 text-white px-4 py-2 rounded" data-location="MPR">MPR</button>
+						<button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Music Room">Music Room</button>
+						<button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Country Kitchen">Country Kitchen</button>
+						<button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Right Courtyard">Right Courtyard</button>
+						<button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Left Courtyard">Left Courtyard</button>
+					</div>
+					<input type="hidden" id="event-location" value="MPR">
+				</div>  
+				<div id="calendar" class="bg-white p-6 rounded shadow-md"></div>
+			</section>
+		</main>
 
-        <h2 class="text-xl font-semibold mb-4">Make Reservation</h2>
-        <form id="createEventForm" class="bg-white p-6 rounded shadow-md mb-6">
-            <div class="mb-4">
-                <label class="block text-gray-700">Title:</label>
-                <input type="text" id="title" class="w-full p-2 border border-gray-300 rounded mt-2" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Description:</label>
-                <input type="text" id="description" class="w-full p-2 border border-gray-300 rounded mt-2" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">Start Time:</label>
-                <input type="datetime-local" id="startTime" class="w-full p-2 border border-gray-300 rounded mt-2" required>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700">End Time:</label>
-                <input type="datetime-local" id="endTime" class="w-full p-2 border border-gray-300 rounded mt-2" required>
-            </div>
-            <!-- Location Tabs -->
-            <div class="mb-4">
-                <label class="block text-gray-700">Location:</label>
-                <div class="flex space-x-4">
-                    <button type="button" class="location-tab bg-gray-500 text-white px-4 py-2 rounded" data-location="Conference Room 1">Conference Room 1</button>
-                    <button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Conference Room 2">Conference Room 2</button>
-                    <button type="button" class="location-tab bg-gray-300 px-4 py-2 rounded" data-location="Auditorium">Auditorium</button>
-                </div>
-                <input type="hidden" id="location" value="Conference Room 1">
-            </div>
-            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Make Reservation</button>
-        </form>
-        
-        <!-- Location Tabs for Events Section -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Filter by Location:</label>
-            <div class="flex space-x-4">
-                <button type="button" class="event-location-tab bg-gray-500 text-white px-4 py-2 rounded" data-location="Conference Room 1">Conference Room 1</button>
-                <button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Conference Room 2">Conference Room 2</button>
-                <button type="button" class="event-location-tab bg-gray-300 px-4 py-2 rounded" data-location="Auditorium">Auditorium</button>
-            </div>
-        </div>
-        
-        <h2 class="text-xl font-semibold mb-4">Events</h2>
-        <div id="calendar" class="bg-white p-6 rounded shadow-md"></div>
+		<!-- Footer -->
+		<footer class="mt-6 text-center">
+			<p><a href="mailto:nh-webmaster@mit.edu" class="text-blue-500 underline hover:text-blue-700">Contact Webmaster</a></p>
+		</footer>
     </div>
     <script src="script.js"></script>
 </body>
