@@ -57,6 +57,39 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(event)
 }
 
+func removeEvent(w http.ResponseWriter, r *http.Request) {
+    var event Event
+    if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    var err error
+    event.StartTime, err = time.Parse(timeLayout, event.StartTime.Format(timeLayout))
+    if err != nil {
+        http.Error(w, "Invalid start time format", http.StatusBadRequest)
+        return
+    }
+
+    event.EndTime, err = time.Parse(timeLayout, event.EndTime.Format(timeLayout))
+    if err != nil {
+        http.Error(w, "Invalid end time format", http.StatusBadRequest)
+        return
+    }
+
+    // Check permissions
+	creator := "unset"
+
+    err = deleteEvent(event, creator)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(event)
+}
+
 func listEvents(w http.ResponseWriter, r *http.Request) {
     events, err := getEvents()
     if err != nil {

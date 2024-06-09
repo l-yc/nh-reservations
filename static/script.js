@@ -11,7 +11,7 @@ const invConverter = (d) => {
 
 document.getElementById('createEventForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const eventId = document.getElementById('eventId').value;
+    const eventId = Number.parseInt(document.getElementById('eventId').value);
 
     const title = document.getElementById('title').value;
     const description = document.getElementById('description').value;
@@ -20,7 +20,7 @@ document.getElementById('createEventForm').addEventListener('submit', function(e
 	const endTime = converter(document.getElementById('endTime').value);
 
 	fetch('/events', {
-        method: eventId === "" ? "POST" : "PUT",
+        method: eventId === "" ? "POST" : "DELETE",
         headers: {
             'Content-Type': 'application/json'
         },
@@ -35,7 +35,7 @@ document.getElementById('createEventForm').addEventListener('submit', function(e
         } else if (response.ok) {
             response.json().then(data => {
                 Swal.fire({
-                    title: "Sucessfully created event",
+                    title: "Sucessfully updated event",
                     text: "",
                     icon: "success",
                 });
@@ -64,6 +64,7 @@ function loadEvents(locationFilter = '') {
                 events: data
                     .filter(event => !locationFilter || event.location === locationFilter)
                     .map(event => ({
+                        id: event.id,
                         title: event.title,
                         start: event.start_time,
                         end: event.end_time,
@@ -72,12 +73,11 @@ function loadEvents(locationFilter = '') {
                     })),
                 eventDidMount: function(info) {
                     tippy(info.el, {
-                        content: '[' + info.event.extendedProps.creator + '] ' + info.event.extendedProps.description,
+                        content: '[' + info.event.creator + '] ' + info.event.extendedProps.description,
                     });
                 },
                 eventClick: function(info) {
                     // fill in the createEventForm with event details
-                    console.log(info.event, info, info.start, info.event.start, info.event.end);
                     document.getElementById('eventId').value = info.event.id;
                     document.getElementById('title').value = info.event.title;
                     document.getElementById('description').value = info.event.extendedProps.description;
@@ -85,7 +85,7 @@ function loadEvents(locationFilter = '') {
 
                     document.getElementById('startTime').value = invConverter(info.event.start);
                     document.getElementById('endTime').value = invConverter(info.event.end);
-                    setReservationForm('update');
+                    setReservationForm('delete');
                 }
             });
             calendar.render();
@@ -101,10 +101,10 @@ function setReservationForm(action) {
         submitButton.innerText = 'Create';
         title.innerText = 'Create Reservation';
         document.getElementById('eventId').value = '';
-    } else if (action === 'update') {
+    } else if (action === 'delete') {
         setCreateButton.classList.remove('hidden');
-        submitButton.innerText = 'Update';
-        title.innerText = 'Update Reservation';
+        submitButton.innerText = 'Delete';
+        title.innerText = 'Delete Reservation';
     }
 }
 

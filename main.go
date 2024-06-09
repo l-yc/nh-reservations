@@ -32,7 +32,7 @@ func main() {
 
     r := mux.NewRouter()
     r.HandleFunc("/events", createEvent).Methods("POST")
-    r.HandleFunc("/events", updateEvent).Methods("PUT")
+    r.HandleFunc("/events", removeEvent).Methods("DELETE")
     r.HandleFunc("/events", listEvents).Methods("GET")
     r.HandleFunc("/events/{id:[0-9]+}", viewEvent).Methods("GET")
 

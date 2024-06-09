@@ -1,7 +1,8 @@
 package main
 
 import (
-    "time"
+	"fmt"
+	"time"
 )
 
 type Event struct {
@@ -48,6 +49,25 @@ func insertEvent(event Event) (int, error) {
     //id, err := result.LastInsertId()
 	id := 0
     return int(id), err
+}
+
+func deleteEvent(event Event, creator string) error {
+    stmt, _, err := db.Prepare(`DELETE FROM events WHERE id = ? AND creator = ?`)
+    if err != nil {
+        return err
+    }
+	defer stmt.Close()
+	stmt.BindInt(1, event.ID)
+	stmt.BindText(2, creator)
+	err = stmt.Exec()
+    if err != nil {
+        return err
+    }
+	affected := db.Changes()
+	if affected == 0 {
+		return fmt.Errorf("Invalid event ID or insufficient permissions")
+	}
+	return nil
 }
 
 func getEvents() ([]Event, error) {
