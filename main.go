@@ -3,9 +3,10 @@ package main
 import (
 	"embed"
     "fmt"
-	_ "io/fs"
+	"io/fs"
     "log"
     "net/http"
+	"os"
 
     "github.com/gorilla/mux"
 	"github.com/ncruces/go-sqlite3"
@@ -19,6 +20,11 @@ var db *sqlite3.Conn
 var content embed.FS
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
     var err error
     db, err = sqlite3.Open("./events.db")
     if err != nil {
@@ -36,13 +42,14 @@ func main() {
     r.HandleFunc("/events", listEvents).Methods("GET")
     r.HandleFunc("/events/{id:[0-9]+}", viewEvent).Methods("GET")
 
-	//static, _ := fs.Sub(content, "static")
-	//r.PathPrefix("/").Handler(http.FileServer(http.FS(static)))
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
+	static, _ := fs.Sub(content, "static")
+	r.PathPrefix("/").Handler(http.FileServer(http.FS(static)))
+	//r.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
 
 	//http.Handle("/static/", )
 
-    fmt.Println("Server started at :8080")
-    http.ListenAndServe(":8080", r)
+	port = fmt.Sprintf(":%s", port)
+    fmt.Println("Server started at", port)
+    http.ListenAndServe(port, r)
 }
 
