@@ -8,6 +8,9 @@ require (
 	github.com/coreos/go-oidc/v3 v3.10.0 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/gorilla/sessions v1.3.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/ncruces/go-sqlite3 v0.16.1 // indirect
 	github.com/ncruces/julianday v1.0.0 // indirect

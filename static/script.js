@@ -9,7 +9,8 @@ const invConverter = (d) => {
     return d.toISOString().slice(0, 16);
 }
 
-document.getElementById('createEventForm').addEventListener('submit', function(e) {
+let eventForm = document.getElementById('createEventForm');
+eventForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const eventId = Number.parseInt(document.getElementById('eventId').value);
 
@@ -19,8 +20,9 @@ document.getElementById('createEventForm').addEventListener('submit', function(e
 	const startTime = converter(document.getElementById('startTime').value);
 	const endTime = converter(document.getElementById('endTime').value);
 
+	action = Number.isNaN(eventId) ? "create" : "delete"
 	fetch('/events', {
-        method: eventId === "" ? "POST" : "DELETE",
+        method: Number.isNaN(eventId) ? "POST" : "DELETE",
         headers: {
             'Content-Type': 'application/json'
         },
@@ -28,22 +30,30 @@ document.getElementById('createEventForm').addEventListener('submit', function(e
     }).then(response => {
         if (response.status === 409) {
             Swal.fire({
-                title: "Failed to create event",
+                title: `Failed to ${action} event`,
                 text: "Event conflicts with an existing event.",
                 icon: "error",
             });
-        } else if (response.ok) {
+        } else if (!response.ok) {
+            response.text().then(text => {
+				Swal.fire({
+					title: `Failed to ${action} event`,
+					text: text,
+					icon: "error",
+				});
+			});
+        } else {
             response.json().then(data => {
                 Swal.fire({
-                    title: "Sucessfully updated event",
+                    title: `Sucessfully ${action}d event`,
                     text: "",
                     icon: "success",
                 });
+
+				eventForm.reset();
                 // default to active location
                 loadEvents(document.querySelector('#event-location').value);
             });
-        } else {
-            response.text().then(text => alert('Error: ' + text));
         }
     }).catch(error => console.error('Error:', error));
 });
@@ -69,11 +79,13 @@ function loadEvents(locationFilter = '') {
                         start: event.start_time,
                         end: event.end_time,
                         description: event.description,
-                        location: event.location
+                        location: event.location,
+						creator: event.creator,
                     })),
                 eventDidMount: function(info) {
+					console.log(info.event);
                     tippy(info.el, {
-                        content: '[' + info.event.creator + '] ' + info.event.extendedProps.description,
+                        content: '[' + info.event.extendedProps.creator + '] ' + info.event.extendedProps.description,
                     });
                 },
                 eventClick: function(info) {
@@ -110,6 +122,7 @@ function setReservationForm(action) {
 
 const setCreateButton = document.querySelector('#setCreateButton');
 setCreateButton.addEventListener('click', function() {
+	eventForm.reset();
     setReservationForm('create');
 });
 
@@ -138,6 +151,21 @@ eventTabs.forEach(tab => {
     });
 });
 
+function loadAuth() {
+	const auth = document.getElementById('authButton');
+    fetch('/profile')
+        .then(response => response.json())
+		.catch(err => {
+			auth.innerText = '(Login)'
+			auth.href = '/login'
+		})
+        .then(data => {
+			auth.innerText = '(Logout of ' + data.email + ')'
+			auth.href = '/logout'
+		})
+}
+
 window.onload = function() {
+    loadAuth(); // Load events for the default active location
     loadEvents('MPR'); // Load events for the default active location
 };

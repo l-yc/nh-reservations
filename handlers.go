@@ -32,29 +32,31 @@ func createEvent(w http.ResponseWriter, r *http.Request) {
     }
 
     // Set the creator
-    event.Creator = "unset" // Replace with actual logic to determine the creator
+	if creator, cont := authMiddleware(w, r); cont {
+		event.Creator = creator
 
-    // Check for conflict
-    conflict, err := hasConflict(event)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
+		// Check for conflict
+		conflict, err := hasConflict(event)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-    if conflict {
-        http.Error(w, "Event conflicts with an existing event", http.StatusConflict)
-        return
-    }
+		if conflict {
+			http.Error(w, "Event conflicts with an existing event", http.StatusConflict)
+			return
+		}
 
-    id, err := insertEvent(event)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    event.ID = id
+		id, err := insertEvent(event)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		event.ID = id
 
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(event)
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(event)
+	}
 }
 
 func removeEvent(w http.ResponseWriter, r *http.Request) {
@@ -77,17 +79,17 @@ func removeEvent(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Check permissions
-	creator := "unset"
+    // actual logic
+	if creator, cont := authMiddleware(w, r); cont {
+		err = deleteEvent(event, creator)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-    err = deleteEvent(event, creator)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(event)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(event)
+	}
 }
 
 func listEvents(w http.ResponseWriter, r *http.Request) {
